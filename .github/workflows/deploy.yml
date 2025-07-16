@@ -71,28 +71,20 @@ jobs:
         run: |
           echo "Debug: Listing all terraform outputs"
           terraform output
-          echo "Debug: Getting raw API key"
-          if terraform output static_web_app_api_key > /dev/null 2>&1; then
-            swa_api_token=$(terraform output -raw static_web_app_api_key)
-            echo "Debug: API token captured successfully, length: ${#swa_api_token}"
-          else
-            echo "ERROR: Failed to get static_web_app_api_key output"
-            exit 1
-          fi
+          echo "Debug: Getting raw API key (sensitive value)"
+          swa_api_token=$(terraform output -raw static_web_app_api_key)
+          swa_url=$(terraform output -raw static_web_app_url)
 
-          if terraform output static_web_app_url > /dev/null 2>&1; then
-            swa_url=$(terraform output -raw static_web_app_url)
-            echo "Debug: URL captured successfully: $swa_url"
-          else
-            echo "ERROR: Failed to get static_web_app_url output"
-            exit 1
-          fi
+          echo "Debug: API token length: ${#swa_api_token}"
+          echo "Debug: URL: $swa_url"
 
           if [ -z "$swa_api_token" ]; then
             echo "ERROR: API token is empty after capture"
+            echo "This might be due to the sensitive flag or Azure not generating the key"
             exit 1
           fi
 
+          # Mask the token immediately after capture
           echo "::add-mask::$swa_api_token"
           echo "swa_api_token=$swa_api_token" >> $GITHUB_OUTPUT
           echo "swa_url=$swa_url" >> $GITHUB_OUTPUT
