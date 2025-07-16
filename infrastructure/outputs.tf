@@ -19,3 +19,21 @@ output "github_branch" {
   description = "GitHub branch for deployment"
   value       = var.github_branch
 }
+
+# Monitoring Outputs
+output "application_insights_instrumentation_key" {
+  description = "Application Insights instrumentation key"
+  value       = azurerm_application_insights.main.instrumentation_key
+  sensitive   = true
+}
+
+output "application_insights_connection_string" {
+  description = "Application Insights connection string"
+  value       = azurerm_application_insights.main.connection_string
+  sensitive   = true
+}
+
+output "heartbeat_test_id" {
+  description = "Heartbeat test ID for monitoring"
+  value       = azurerm_application_insights_standard_web_test.main.id
+}

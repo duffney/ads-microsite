@@ -48,6 +48,41 @@ resource "azurerm_static_web_app" "main" {
   # This prevents Azure from auto-generating workflow files
 }
 
+# Application Insights for monitoring and observability
+resource "azurerm_application_insights" "main" {
+  name                = "${var.project_name}-${var.environment}-ai"
+  location            = azurerm_resource_group.main.location
+  resource_group_name = azurerm_resource_group.main.name
+  application_type    = "web"
+  retention_in_days   = 7
+  tags                = var.tags
+}
+
+# Basic heartbeat monitor (availability test)
+resource "azurerm_application_insights_standard_web_test" "main" {
+  name                    = "${var.project_name}-heartbeat"
+  resource_group_name     = azurerm_resource_group.main.name
+  location                = azurerm_resource_group.main.location
+  application_insights_id = azurerm_application_insights.main.id
+  description             = "Basic heartbeat monitor for ${var.project_name} microsite"
+  frequency               = 300 # 5 minutes
+  timeout                 = 30
+  enabled                 = true
+  geo_locations           = ["us-ca-sjc-azr", "emea-nl-ams-azr"] # North America and Europe coverage
+  tags                    = var.tags
+
+  request {
+    url                              = "https://${azurerm_static_web_app.main.default_host_name}"
+    http_verb                        = "GET"
+    parse_dependent_requests_enabled = false
+  }
+
+  validation_rules {
+    expected_status_code = 200
+    ssl_check_enabled    = true
+  }
+}
+
 # Custom domain for Static Web App (if specified)
 resource "azurerm_static_web_app_custom_domain" "main" {
   count             = var.custom_domain_name != "" ? 1 : 0
