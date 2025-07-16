@@ -25,21 +25,70 @@ provider "azurerm" {
   }
 }
 
+# Local computed values for environment-specific configurations
+locals {
+  # Naming conventions
+  naming_prefix = "${var.project_name}-${var.environment}"
+
+  # Environment-specific monitoring configurations
+  monitoring_config = {
+    dev = {
+      frequency               = 900 # 15 minutes for dev (cost optimization)
+      timeout                 = 30
+      availability_threshold  = 90   # Lower SLA for dev
+      response_time_threshold = 3000 # 3 seconds for dev
+      retention_days          = 30
+      geo_locations           = ["us-ca-sjc-azr"] # Single region for dev
+    }
+    prod = {
+      frequency               = 300 # 5 minutes for prod
+      timeout                 = 30
+      availability_threshold  = 95   # Higher SLA for prod
+      response_time_threshold = 1500 # 1.5 seconds for prod
+      retention_days          = 90
+      geo_locations           = ["us-ca-sjc-azr", "emea-nl-ams-azr"] # Multi-region for prod
+    }
+  }
+
+  # Current environment monitoring settings
+  current_monitoring = local.monitoring_config[var.environment]
+
+  # Resource naming
+  resource_names = {
+    resource_group       = var.resource_group_name != "" ? var.resource_group_name : "${local.naming_prefix}-rg"
+    static_web_app       = "${local.naming_prefix}-swa"
+    application_insights = "${local.naming_prefix}-ai"
+    web_test             = "${var.project_name}-global-monitor"
+    availability_alert   = "${var.project_name}-availability-alert"
+    response_time_alert  = "${var.project_name}-response-time-alert"
+    action_group         = "${var.project_name}-alerts"
+  }
+
+  # Enhanced tags with computed values
+  common_tags = merge(var.tags, {
+    Environment  = var.environment
+    Project      = var.project_name
+    ManagedBy    = "terraform"
+    CreatedDate  = formatdate("YYYY-MM-DD", timestamp())
+    NamingPrefix = local.naming_prefix
+  })
+}
+
 # Resource Group
 resource "azurerm_resource_group" "main" {
-  name     = var.resource_group_name != "" ? var.resource_group_name : "${var.project_name}-${var.environment}-rg"
+  name     = local.resource_names.resource_group
   location = var.location
-  tags     = var.tags
+  tags     = local.common_tags
 }
 
 # Static Web App - Infrastructure only
 resource "azurerm_static_web_app" "main" {
-  name                = "${var.project_name}-${var.environment}-swa"
+  name                = local.resource_names.static_web_app
   resource_group_name = azurerm_resource_group.main.name
   location            = var.location
   sku_tier            = var.sku_tier
   sku_size            = var.sku_tier
-  tags                = var.tags
+  tags                = local.common_tags
 
   # Note: GitHub integration handled via existing GitHub Actions workflow
   # This prevents Azure from auto-generating workflow files
@@ -47,26 +96,26 @@ resource "azurerm_static_web_app" "main" {
 
 # Application Insights for monitoring and observability
 resource "azurerm_application_insights" "main" {
-  name                = "${var.project_name}-${var.environment}-ai"
+  name                = local.resource_names.application_insights
   location            = azurerm_resource_group.main.location
   resource_group_name = azurerm_resource_group.main.name
   application_type    = "web"
-  retention_in_days   = 30
-  tags                = var.tags
+  retention_in_days   = local.current_monitoring.retention_days
+  tags                = local.common_tags
 }
 
-# Multi-region availability and performance test (US + EU)
+# Multi-region availability and performance test (environment-specific)
 resource "azurerm_application_insights_standard_web_test" "main" {
-  name                    = "${var.project_name}-global-monitor"
+  name                    = local.resource_names.web_test
   resource_group_name     = azurerm_resource_group.main.name
   location                = azurerm_resource_group.main.location
   application_insights_id = azurerm_application_insights.main.id
   description             = "Global availability and performance monitor for ${var.project_name} microsite"
-  frequency               = 300 # 5 minutes
-  timeout                 = 30
+  frequency               = local.current_monitoring.frequency
+  timeout                 = local.current_monitoring.timeout
   enabled                 = true
-  geo_locations           = ["us-ca-sjc-azr", "emea-nl-ams-azr"] # US West and EU for global coverage per context.md
-  tags                    = var.tags
+  geo_locations           = local.current_monitoring.geo_locations
+  tags                    = local.common_tags
 
   request {
     url                              = "https://${azurerm_static_web_app.main.default_host_name}"
@@ -90,7 +139,7 @@ resource "azurerm_static_web_app_custom_domain" "main" {
 
 # Alert rule for availability monitoring (using Application Insights metrics)
 resource "azurerm_monitor_metric_alert" "availability" {
-  name                = "${var.project_name}-availability-alert"
+  name                = local.resource_names.availability_alert
   resource_group_name = azurerm_resource_group.main.name
   scopes              = [azurerm_application_insights.main.id]
   description         = "Alert when availability drops below acceptable thresholds"
@@ -100,19 +149,19 @@ resource "azurerm_monitor_metric_alert" "availability" {
     metric_name      = "availabilityResults/availabilityPercentage"
     aggregation      = "Average"
     operator         = "LessThan"
-    threshold        = 95 # 95% availability threshold
+    threshold        = local.current_monitoring.availability_threshold
   }
 
   frequency   = "PT5M"  # Check every 5 minutes
   window_size = "PT15M" # 15-minute window
   severity    = 1       # Error level
 
-  tags = var.tags
+  tags = local.common_tags
 }
 
 # Alert rule for response time monitoring (using Application Insights metrics)
 resource "azurerm_monitor_metric_alert" "response_time" {
-  name                = "${var.project_name}-response-time-alert"
+  name                = local.resource_names.response_time_alert
   resource_group_name = azurerm_resource_group.main.name
   scopes              = [azurerm_application_insights.main.id]
   description         = "Alert when response times exceed acceptable thresholds for global users"
@@ -122,21 +171,21 @@ resource "azurerm_monitor_metric_alert" "response_time" {
     metric_name      = "availabilityResults/duration"
     aggregation      = "Average"
     operator         = "GreaterThan"
-    threshold        = 1500 # 1.5 seconds threshold for consistently fast responses
+    threshold        = local.current_monitoring.response_time_threshold
   }
 
   frequency   = "PT5M"  # Check every 5 minutes
   window_size = "PT15M" # 15-minute window
   severity    = 2       # Warning level
 
-  tags = var.tags
+  tags = local.common_tags
 }
 
 # Action group for alerts (can be extended with email/webhook notifications)
 resource "azurerm_monitor_action_group" "main" {
-  name                = "${var.project_name}-alerts"
+  name                = local.resource_names.action_group
   resource_group_name = azurerm_resource_group.main.name
   short_name          = "swa-alerts"
 
-  tags = var.tags
+  tags = local.common_tags
 }

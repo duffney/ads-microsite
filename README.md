@@ -46,36 +46,21 @@ A production-ready marketing microsite built with Azure Static Web Apps, featuri
 
 ### 🔒 Security
 
-- **HTTPS Everywhere**: Enforced via Static Web Apps platform
-- **Security Headers**: CSP, HSTS, X-Frame-Options, Referrer-Policy configured
-- **OIDC Authentication**: Passwordless GitHub Actions deployment
-- **Secrets Management**: Azure Key Vault integration ready (currently using GitHub Secrets)
-- **Infrastructure Scanning**: Trivy security scans in CI/CD pipeline
+- **HTTPS + Security Headers**: CSP, HSTS, X-Frame-Options enforced via Azure Static Web Apps
+- **OIDC Authentication**: Passwordless GitHub Actions deployment with Azure integration
+- **Secrets Management**: GitHub Secrets for sensitive values (Azure credentials, API keys)
 
 ### 🛡️ Resilience
 
-- **Global CDN**: Automatic worldwide distribution via Azure CDN
-- **99.95% SLA**: Static Web Apps service level agreement
+- **Global CDN**: Azure's worldwide distribution with 99.95% SLA
 - **Multi-Region Testing**: Availability monitoring from US West and EU Amsterdam
-- **Automated Recovery**: Infrastructure as Code enables rapid redeployment
-- **Rollback Capability**: Git-based deployments with instant rollback
+- **Infrastructure as Code**: Rapid redeployment and Git-based rollback capability
 
 ### 📊 Observability
 
-- **Availability Monitoring**: 95% uptime threshold with 5-minute checks
-- **Performance Monitoring**: <1.5 second response time alerts
-- **Global Coverage**: Synthetic tests from North America and Europe
-- **Alert Integration**: Azure Monitor alerts (ready for email/Slack integration)
-- **Metrics Dashboard**: Application Insights portal for operational visibility
-
-### 🚀 Day 2 Operations
-
-- **Infrastructure as Code**: Fully automated Terraform deployment
-- **CI/CD Pipeline**: GitHub Actions with validation, security scanning, and deployment
-- **Monitoring**: Application Insights with configurable alerting
-- **Security**: Automated security scanning with Trivy
-- **Documentation**: Comprehensive README with architecture and costs
-- **Handoff Ready**: New team members can understand and operate the system
+- **Performance Monitoring**: <1.5s response time alerts and 95% availability thresholds
+- **Global Coverage**: Synthetic tests from North America and Europe every 5 minutes
+- **Centralized Dashboards**: Application Insights with Azure Monitor alert integration
 
 ## Repository Structure
 

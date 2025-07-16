@@ -57,13 +57,7 @@ variable "custom_domain_name" {
 
 # Tags
 variable "tags" {
-  description = "A map of tags to assign to the resources"
+  description = "Environment-specific tags to assign to resources (merged with computed common tags)"
   type        = map(string)
-  default = {
-    Project     = "ads-microsite"
-    Environment = "production"
-    ManagedBy   = "terraform"
-    Purpose     = "marketing-microsite"
-    CostCenter  = "marketing"
-  }
+  default     = {}
 }
