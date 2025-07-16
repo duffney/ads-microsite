@@ -25,9 +25,6 @@ provider "azurerm" {
   }
 }
 
-# Data sources
-data "azurerm_client_config" "current" {}
-
 # Resource Group
 resource "azurerm_resource_group" "main" {
   name     = var.resource_group_name != "" ? var.resource_group_name : "${var.project_name}-${var.environment}-rg"
