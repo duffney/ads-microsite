@@ -33,7 +33,17 @@ output "application_insights_connection_string" {
   sensitive   = true
 }
 
-output "heartbeat_test_id" {
-  description = "Heartbeat test ID for monitoring"
+output "global_performance_test_id" {
+  description = "Global performance test ID for US/EU monitoring"
   value       = azurerm_application_insights_standard_web_test.main.id
+}
+
+output "response_time_alert_id" {
+  description = "Response time alert rule ID"
+  value       = azurerm_monitor_metric_alert.response_time.id
+}
+
+output "monitoring_dashboard_url" {
+  description = "URL to view Application Insights monitoring dashboard"
+  value       = "https://portal.azure.com/#@/resource${azurerm_application_insights.main.id}/overview"
 }

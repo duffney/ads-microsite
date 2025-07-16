@@ -58,17 +58,17 @@ resource "azurerm_application_insights" "main" {
   tags                = var.tags
 }
 
-# Basic heartbeat monitor (availability test)
+# Multi-region availability and performance test (US + EU)
 resource "azurerm_application_insights_standard_web_test" "main" {
-  name                    = "${var.project_name}-heartbeat"
+  name                    = "${var.project_name}-global-monitor"
   resource_group_name     = azurerm_resource_group.main.name
   location                = azurerm_resource_group.main.location
   application_insights_id = azurerm_application_insights.main.id
-  description             = "Basic heartbeat monitor for ${var.project_name} microsite"
+  description             = "Global availability and performance monitor for ${var.project_name} microsite"
   frequency               = 300 # 5 minutes
   timeout                 = 30
   enabled                 = true
-  geo_locations           = ["us-ca-sjc-azr", "emea-nl-ams-azr"] # North America and Europe coverage
+  geo_locations           = ["us-ca-sjc-azr", "emea-nl-ams-azr"] # US West and EU for global coverage per context.md
   tags                    = var.tags
 
   request {
@@ -89,4 +89,41 @@ resource "azurerm_static_web_app_custom_domain" "main" {
   static_web_app_id = azurerm_static_web_app.main.id
   domain_name       = var.custom_domain_name
   validation_type   = "dns-txt-token"
+}
+
+# Alert rule for response time monitoring
+resource "azurerm_monitor_metric_alert" "response_time" {
+  name                = "${var.project_name}-response-time-alert"
+  resource_group_name = azurerm_resource_group.main.name
+  scopes              = [azurerm_application_insights_standard_web_test.main.id]
+  description         = "Alert when response times exceed acceptable thresholds for global users"
+
+  criteria {
+    metric_namespace = "Microsoft.Insights/webtests"
+    metric_name      = "availabilityResults/duration"
+    aggregation      = "Average"
+    operator         = "GreaterThan"
+    threshold        = 1500 # 1.5 seconds threshold for consistently fast responses
+
+    dimension {
+      name     = "availabilityResult/location"
+      operator = "Include"
+      values   = ["us-ca-sjc-azr", "emea-nl-ams-azr"]
+    }
+  }
+
+  frequency   = "PT5M"  # Check every 5 minutes
+  window_size = "PT15M" # 15-minute window
+  severity    = 2       # Warning level
+
+  tags = var.tags
+}
+
+# Action group for alerts (can be extended with email/webhook notifications)
+resource "azurerm_monitor_action_group" "main" {
+  name                = "${var.project_name}-alerts"
+  resource_group_name = azurerm_resource_group.main.name
+  short_name          = "swa-alerts"
+
+  tags = var.tags
 }
