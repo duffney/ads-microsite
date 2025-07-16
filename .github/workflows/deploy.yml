@@ -21,6 +21,12 @@ jobs:
       run:
         working-directory: ./infrastructure
 
+    env:
+      ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+      ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+      ARM_USE_OIDC: true
+
     outputs:
       swa_api_token: ${{ steps.terraform_output.outputs.swa_api_token }}
       swa_url: ${{ steps.terraform_output.outputs.swa_url }}
@@ -42,58 +48,34 @@ jobs:
           terraform_version: ${{ env.TF_VERSION }}
           terraform_wrapper: false # Required to capture outputs
 
+      - name: Terraform Format Check
+        run: terraform fmt -check -recursive
+        continue-on-error: false
+
       - name: Terraform Init
         run: terraform init
-        env:
-          ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-          ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-          ARM_USE_OIDC: true
+
+      - name: Setup TFLint
+        uses: terraform-linters/setup-tflint@v4
+        with:
+          tflint_version: latest
+
+      - name: TFLint
+        run: |
+          tflint --init
+          tflint --format compact
 
       - name: Terraform Plan
         run: terraform plan -no-color -input=false -out=tfplan
-        env:
-          ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-          ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-          ARM_USE_OIDC: true
 
       - name: Terraform Apply
         run: terraform apply -auto-approve tfplan
-        env:
-          ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-          ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-          ARM_USE_OIDC: true
 
       - name: Get Terraform Outputs
         id: terraform_output
         run: |
-          echo "Debug: Listing all terraform outputs"
-          terraform output
-          echo "Debug: Getting raw API key (sensitive value)"
-          swa_api_token=$(terraform output -raw static_web_app_api_key)
-          swa_url=$(terraform output -raw static_web_app_url)
-
-          echo "Debug: API token length: ${#swa_api_token}"
-          echo "Debug: URL: $swa_url"
-
-          if [ -z "$swa_api_token" ]; then
-            echo "ERROR: API token is empty after capture"
-            echo "This might be due to the sensitive flag or Azure not generating the key"
-            exit 1
-          fi
-
-          # Set outputs without masking
-          echo "swa_api_token=$swa_api_token" >> $GITHUB_OUTPUT
-          echo "swa_url=$swa_url" >> $GITHUB_OUTPUT
-
-          echo "::notice title=Infrastructure Deployed::Static Web App infrastructure ready"
-        env:
-          ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-          ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-          ARM_USE_OIDC: true
+          echo "swa_api_token=$(terraform output -raw static_web_app_api_key)" >> $GITHUB_OUTPUT
+          echo "swa_url=$(terraform output -raw static_web_app_url)" >> $GITHUB_OUTPUT
 
   deploy_website:
     name: "Deploy Website"
