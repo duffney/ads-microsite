@@ -56,7 +56,7 @@ resource "azurerm_monitor_metric_alert" "availability" {
   resource_group_name = var.resource_group_name
   scopes              = [azurerm_application_insights.this.id]
   description         = "Alert when ${var.project_name} availability drops below ${var.monitoring_config.availability_threshold}%"
-  
+
   criteria {
     metric_namespace = "Microsoft.Insights/components"
     metric_name      = "availabilityResults/availabilityPercentage"
@@ -82,7 +82,7 @@ resource "azurerm_monitor_metric_alert" "response_time" {
   resource_group_name = var.resource_group_name
   scopes              = [azurerm_application_insights.this.id]
   description         = "Alert when ${var.project_name} response time exceeds ${var.monitoring_config.response_time_threshold}ms"
-  
+
   criteria {
     metric_namespace = "Microsoft.Insights/components"
     metric_name      = "availabilityResults/duration"
