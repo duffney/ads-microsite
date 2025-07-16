@@ -1,4 +1,11 @@
 {
+  "platform": {
+    "apiRuntime": "node:18"
+  },
+  "build": {
+    "commands": [],
+    "outputLocation": "."
+  },
   "routes": [
     {
       "route": "/api/*",
