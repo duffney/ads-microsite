@@ -54,11 +54,11 @@ resource "azurerm_monitor_action_group" "alerts" {
 resource "azurerm_monitor_metric_alert" "availability" {
   name                = var.resource_names.availability_alert
   resource_group_name = var.resource_group_name
-  scopes              = [azurerm_application_insights_web_test.global_monitor.id]
+  scopes              = [azurerm_application_insights.this.id]
   description         = "Alert when ${var.project_name} availability drops below ${var.monitoring_config.availability_threshold}%"
-
+  
   criteria {
-    metric_namespace = "microsoft.insights/webtests"
+    metric_namespace = "Microsoft.Insights/components"
     metric_name      = "availabilityResults/availabilityPercentage"
     aggregation      = "Average"
     operator         = "LessThan"
@@ -80,11 +80,11 @@ resource "azurerm_monitor_metric_alert" "availability" {
 resource "azurerm_monitor_metric_alert" "response_time" {
   name                = var.resource_names.response_time_alert
   resource_group_name = var.resource_group_name
-  scopes              = [azurerm_application_insights_web_test.global_monitor.id]
+  scopes              = [azurerm_application_insights.this.id]
   description         = "Alert when ${var.project_name} response time exceeds ${var.monitoring_config.response_time_threshold}ms"
-
+  
   criteria {
-    metric_namespace = "microsoft.insights/webtests"
+    metric_namespace = "Microsoft.Insights/components"
     metric_name      = "availabilityResults/duration"
     aggregation      = "Average"
     operator         = "GreaterThan"
