@@ -1,49 +1,49 @@
-# Static Web App - Essential Outputs
+# Static Web App Outputs from module
 output "static_web_app_url" {
   description = "URL of the Static Web App"
-  value       = "https://${azurerm_static_web_app.main.default_host_name}"
+  value       = "https://${module.static_web_app.default_host_name}"
 }
 
 output "static_web_app_api_key" {
   description = "API key for GitHub Actions deployment"
-  value       = azurerm_static_web_app.main.api_key
+  value       = module.static_web_app.api_key
   sensitive   = true
 }
 
-output "github_repository_url" {
-  description = "GitHub repository URL for deployment configuration"
-  value       = var.github_repository_url
+output "static_web_app_name" {
+  description = "Name of the Static Web App"
+  value       = module.static_web_app.static_web_app_name
 }
 
-output "github_branch" {
-  description = "GitHub branch for deployment"
-  value       = var.github_branch
+output "resource_group_name" {
+  description = "Name of the resource group"
+  value       = module.static_web_app.resource_group_name
 }
 
-# Monitoring Outputs
+# Monitoring Outputs from module
 output "application_insights_instrumentation_key" {
   description = "Application Insights instrumentation key"
-  value       = azurerm_application_insights.main.instrumentation_key
+  value       = module.monitoring.application_insights_instrumentation_key
   sensitive   = true
 }
 
 output "application_insights_connection_string" {
   description = "Application Insights connection string"
-  value       = azurerm_application_insights.main.connection_string
+  value       = module.monitoring.application_insights_connection_string
   sensitive   = true
 }
 
-output "global_performance_test_id" {
-  description = "Global performance test ID for US/EU monitoring"
-  value       = azurerm_application_insights_standard_web_test.main.id
+output "application_insights_name" {
+  description = "Name of the Application Insights resource"
+  value       = module.monitoring.application_insights_name
 }
 
-output "response_time_alert_id" {
-  description = "Response time alert rule ID"
-  value       = azurerm_monitor_metric_alert.response_time.id
+output "web_test_id" {
+  description = "ID of the availability web test"
+  value       = module.monitoring.web_test_id
 }
 
 output "monitoring_dashboard_url" {
   description = "URL to view Application Insights monitoring dashboard"
-  value       = "https://portal.azure.com/#@/resource${azurerm_application_insights.main.id}/overview"
+  value       = "https://portal.azure.com/#@/resource${module.monitoring.application_insights_id}/overview"
 }
