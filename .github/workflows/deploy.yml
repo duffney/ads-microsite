@@ -84,10 +84,12 @@ jobs:
             exit 1
           fi
 
-          # Mask the token immediately after capture
-          echo "::add-mask::$swa_api_token"
+          # Set outputs BEFORE masking to avoid GitHub Actions skipping them
           echo "swa_api_token=$swa_api_token" >> $GITHUB_OUTPUT
           echo "swa_url=$swa_url" >> $GITHUB_OUTPUT
+
+          # Mask the token AFTER setting output
+          echo "::add-mask::$swa_api_token"
           echo "::notice title=Infrastructure Deployed::Static Web App infrastructure ready"
         env:
           ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
