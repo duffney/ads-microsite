@@ -11,6 +11,7 @@ permissions:
 
 env:
   TF_VERSION: "1.9.6"
+  ENVIRONMENT: "prod" # Change to "dev" for development deployments
 
 jobs:
   terraform:
@@ -66,7 +67,7 @@ jobs:
           tflint --format compact
 
       - name: Terraform Plan
-        run: terraform plan -no-color -input=false -out=tfplan
+        run: terraform plan -no-color -input=false -var-file="${{ env.ENVIRONMENT }}.tfvars" -out=tfplan
 
       - name: Terraform Apply
         run: terraform apply -auto-approve tfplan

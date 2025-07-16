@@ -15,10 +15,16 @@ yarn-error.log*
 *.tfstate
 *.tfstate.*
 *.tfplan
-*.tfvars
+# Block sensitive tfvars files
+*secrets*.tfvars
+*private*.tfvars
+terraform.tfvars
+# Allow environment-specific configuration files
+!dev.tfvars
+!prod.tfvars
+!staging.tfvars
 !*.tfvars.example
 .terraform/
-.terraform.lock.hcl
 
 # IDE
 .vscode/
