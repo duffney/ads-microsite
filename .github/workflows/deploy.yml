@@ -104,18 +104,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Debug API Token
-        run: |
-          echo "SWA API Token length: ${#API_TOKEN}"
-          if [ -z "$API_TOKEN" ]; then
-            echo "ERROR: API token is empty!"
-            exit 1
-          else
-            echo "API token is available"
-          fi
-        env:
-          API_TOKEN: ${{ needs.terraform.outputs.swa_api_token }}
-
       - name: Deploy to Static Web App
         uses: Azure/static-web-apps-deploy@v1
         with:
