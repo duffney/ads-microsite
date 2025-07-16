@@ -91,25 +91,41 @@ resource "azurerm_static_web_app_custom_domain" "main" {
   validation_type   = "dns-txt-token"
 }
 
-# Alert rule for response time monitoring
+# Alert rule for availability monitoring (using Application Insights metrics)
+resource "azurerm_monitor_metric_alert" "availability" {
+  name                = "${var.project_name}-availability-alert"
+  resource_group_name = azurerm_resource_group.main.name
+  scopes              = [azurerm_application_insights.main.id]
+  description         = "Alert when availability drops below acceptable thresholds"
+
+  criteria {
+    metric_namespace = "Microsoft.Insights/components"
+    metric_name      = "availabilityResults/availabilityPercentage"
+    aggregation      = "Average"
+    operator         = "LessThan"
+    threshold        = 95 # 95% availability threshold
+  }
+
+  frequency   = "PT5M"  # Check every 5 minutes
+  window_size = "PT15M" # 15-minute window
+  severity    = 1       # Error level
+
+  tags = var.tags
+}
+
+# Alert rule for response time monitoring (using Application Insights metrics)
 resource "azurerm_monitor_metric_alert" "response_time" {
   name                = "${var.project_name}-response-time-alert"
   resource_group_name = azurerm_resource_group.main.name
-  scopes              = [azurerm_application_insights_standard_web_test.main.id]
+  scopes              = [azurerm_application_insights.main.id]
   description         = "Alert when response times exceed acceptable thresholds for global users"
 
   criteria {
-    metric_namespace = "Microsoft.Insights/webtests"
+    metric_namespace = "Microsoft.Insights/components"
     metric_name      = "availabilityResults/duration"
     aggregation      = "Average"
     operator         = "GreaterThan"
     threshold        = 1500 # 1.5 seconds threshold for consistently fast responses
-
-    dimension {
-      name     = "availabilityResult/location"
-      operator = "Include"
-      values   = ["us-ca-sjc-azr", "emea-nl-ams-azr"]
-    }
   }
 
   frequency   = "PT5M"  # Check every 5 minutes
