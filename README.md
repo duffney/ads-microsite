@@ -61,7 +61,7 @@ Costs estimated with [Azure Pricing Calculator](https://azure.microsoft.com/en-u
 ### 📊 Observability
 
 - **Performance Monitoring**: <1.5s response time alerts and 95% availability thresholds
-- **Global Coverage**: Synthetic tests from North America and Europe every 5 minutes
+- **Global Coverage**: Synthetic tests from North America and Europe every 15 minutes
 - **Centralized Dashboards**: Application Insights with Azure Monitor alert integration
 
 ## Repository Structure
