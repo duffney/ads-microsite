@@ -26,14 +26,16 @@ A production-ready marketing microsite built with Azure Static Web Apps, featuri
 
 ## Cost Calculation
 
-| Service                               | SKU           | Monthly Cost | Assumptions                          |
-| ------------------------------------- | ------------- | ------------ | ------------------------------------ |
-| **Static Web App**                    | Free          | $0.00        | 100GB bandwidth, 0.5GB storage       |
-| **Application Insights**              | Pay-as-you-go | ~$1.00       | 5GB data ingestion, 90-day retention |
-| **Availability Tests**                | Standard      | ~$1.20       | 2 locations × 2,880 tests/month      |
-| **Storage Account** (Terraform state) | Standard LRS  | ~$0.50       | 1GB state files                      |
+| Service                                 | SKU           | Monthly Cost | Assumptions                          |
+| --------------------------------------- | ------------- | ------------ | ------------------------------------ |
+| **Static Web App**                      | Free          | $0.00        | 100GB bandwidth, 0.5GB storage       |
+| **Application Insights Data Ingestion** | Pay-as-you-go | ~$1.46       | 5GB data ingestion, 90-day retention |
+| **Availability Tests**                  | Standard      | ~$1.65       | 2 locations × 2,880 tests/month      |
+| **Storage Account** (Terraform state)   | Standard LRS  | ~$0.50       | 1GB state files                      |
 
-**Total Estimated Cost: ~$2.70/month** ✅
+**Total Estimated Cost: ~$3.61/month** ✅
+
+Costs estimated with [Azure Pricing Calculator](https://azure.microsoft.com/en-us/pricing/calculator/).
 
 ### Assumptions
 

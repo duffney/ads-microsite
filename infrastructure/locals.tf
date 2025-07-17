@@ -14,12 +14,12 @@ locals {
       geo_locations           = ["us-ca-sjc-azr"] # Single region for dev
     }
     prod = {
-      frequency               = 300 # 5 minutes for prod
+      frequency               = 900 # 15 minutes for prod to reduce costs
       timeout                 = 30
       availability_threshold  = 95   # Higher SLA for prod
       response_time_threshold = 1500 # 1.5 seconds for prod
-      retention_days          = 90
-      geo_locations           = ["us-ca-sjc-azr", "emea-nl-ams-azr"] # Multi-region for prod
+      retention_days          = 30
+      geo_locations           = ["us-ca-sjc-azr"] # Multi-region for prod is possible in the future
     }
   }
 
